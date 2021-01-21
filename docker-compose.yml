@@ -1,0 +1,92 @@
+version: '3'
+
+services:
+  naming-server:
+    build: 
+        context: naming-server
+        dockerfile: Dockerfile
+        network: my-network
+    ports:
+        - 8761:8761
+    container_name: "naming-server"
+    
+  config-server:
+    build:
+        context: config-server
+        dockerfile: Dockerfile
+        network: my-network
+    container_name: "config-server"
+    ports:
+        - 8888:8888
+    expose:
+        - "8888"
+    volumes:
+        - ./git-localconfig-repo
+    environment:
+      server.port: 8888
+      eureka.client.enabled: 'true'
+      eureka.host: naming-server
+      eureka.instance.preferIpAddress: 'true'
+    expose:
+     - "8761"
+    links:
+    - "naming-server"
+      
+  driver-service:
+    build:
+        context: driver-service
+        dockerfile: Dockerfile
+        network: my-network
+    environment:
+        eureka.client.enabled: 'true'
+        eureka.host: naming-server
+        eureka.instance.preferIpAddress: 'true' 
+    expose:
+     - "8761"    
+    links:
+    - "naming-server"
+    - "config-server"
+  ride-service:
+    build:
+        context: ride-service
+        dockerfile: Dockerfile
+        network: my-network
+    environment:
+        eureka.client.enabled: 'true'
+        eureka.host: naming-server
+        eureka.instance.preferIpAddress: 'true' 
+    expose:
+     - "8761"      
+    links:
+    - "naming-server"
+    - "config-server"
+    
+  passenger-service:
+    build:
+        context: ride-service
+        dockerfile: Dockerfile
+        network: my-network
+    environment:
+        eureka.client.enabled: 'true'
+        eureka.host: naming-server
+        eureka.instance.preferIpAddress: 'true' 
+    expose:
+     - "8761"    
+    links:
+    - "naming-server"
+    - "config-server"
+    
+  api-gatway-service:
+    build:
+        context: api-gateway-service
+        dockerfile: Dockerfile
+        network: my-network
+    environment:
+        eureka.client.enabled: 'true'
+        eureka.host: naming-server
+        eureka.instance.preferIpAddress: 'true'
+    expose:
+     - "8761"    
+    links:
+    - "naming-server"
+    - "config-server"
