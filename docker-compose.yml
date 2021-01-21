@@ -18,75 +18,71 @@ services:
     container_name: "config-server"
     ports:
         - 8888:8888
-    expose:
-        - "8888"
     volumes:
         - ./git-localconfig-repo
     environment:
-      server.port: 8888
       eureka.client.enabled: 'true'
       eureka.host: naming-server
       eureka.instance.preferIpAddress: 'true'
-    expose:
-     - "8761"
-    links:
-    - "naming-server"
+    depends_on:
+    - naming-server
       
   driver-service:
     build:
         context: driver-service
         dockerfile: Dockerfile
         network: my-network
+    container_name: "driver-service"
     environment:
         eureka.client.enabled: 'true'
         eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true' 
-    expose:
-     - "8761"    
-    links:
-    - "naming-server"
-    - "config-server"
+        eureka.instance.preferIpAddress: 'true'    
+    depends_on:
+    - naming-server
+    - config-server
   ride-service:
     build:
         context: ride-service
         dockerfile: Dockerfile
         network: my-network
+    container_name: "ride-service"
     environment:
         eureka.client.enabled: 'true'
         eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true' 
-    expose:
-     - "8761"      
-    links:
-    - "naming-server"
-    - "config-server"
+        eureka.instance.preferIpAddress: 'true'  
+    depends_on:
+    - naming-server
+    - config-server
+    - driver-service
+    - passenger-service
     
   passenger-service:
     build:
-        context: ride-service
-        dockerfile: Dockerfile
-        network: my-network
-    environment:
-        eureka.client.enabled: 'true'
-        eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true' 
-    expose:
-     - "8761"    
-    links:
-    - "naming-server"
-    - "config-server"
-    
-  api-gatway-service:
-    build:
-        context: api-gateway-service
+        context: passenger-service
         dockerfile: Dockerfile
         network: my-network
     environment:
         eureka.client.enabled: 'true'
         eureka.host: naming-server
         eureka.instance.preferIpAddress: 'true'
-    expose:
-     - "8761"    
-    links:
-    - "naming-server"
-    - "config-server"
+    container_name: "passenger-service"        
+    depends_on:
+    - naming-server
+    - config-server
+    
+  api-gateway-service:
+    build:
+        context: api-gateway-service
+        dockerfile: Dockerfile
+        network: my-network
+    container_name: "api-gateway-service"    
+    environment:
+        eureka.client.enabled: 'true'
+        eureka.host: naming-server
+        eureka.instance.preferIpAddress: 'true' 
+    depends_on:
+    - naming-server
+    - config-server
+    - driver-service
+    - passenger-service
+    - ride-service
