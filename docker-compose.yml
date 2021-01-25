@@ -8,7 +8,7 @@ services:
         network: my-network
     ports:
         - 8761:8761
-    container_name: "naming-server"
+    container_name: naming-server
     
   config-server:
     build:
@@ -33,10 +33,6 @@ services:
         dockerfile: Dockerfile
         network: my-network
     container_name: "driver-service"
-    environment:
-        eureka.client.enabled: 'true'
-        eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true'    
     depends_on:
     - naming-server
     - config-server
@@ -46,10 +42,6 @@ services:
         dockerfile: Dockerfile
         network: my-network
     container_name: "ride-service"
-    environment:
-        eureka.client.enabled: 'true'
-        eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true'  
     depends_on:
     - naming-server
     - config-server
@@ -61,14 +53,11 @@ services:
         context: passenger-service
         dockerfile: Dockerfile
         network: my-network
-    environment:
-        eureka.client.enabled: 'true'
-        eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true'
     container_name: "passenger-service"        
     depends_on:
     - naming-server
     - config-server
+    
     
   api-gateway-service:
     build:
@@ -76,10 +65,6 @@ services:
         dockerfile: Dockerfile
         network: my-network
     container_name: "api-gateway-service"    
-    environment:
-        eureka.client.enabled: 'true'
-        eureka.host: naming-server
-        eureka.instance.preferIpAddress: 'true' 
     depends_on:
     - naming-server
     - config-server
